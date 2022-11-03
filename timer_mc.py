@@ -7,13 +7,35 @@ class timeroption:
     Timer Option model for option pricing.
     Underlying variance is assumed to follow Heston model.
     Underlying St is assumed to follow BSM model.
+
+    Examples:
+    >>> import pyfeng as pf
+
+    >>> n_path = 200000
+    >>> dt = 1 / 250
+
+    >>> sigma, mr, spot, theta, intr = 0.087, 2, 100, 0.09, 0.015
+    >>> vol_budget = 0.087
+
+    >>> vov = 0.125
+    >>> texp = 0.5
+    >>> rho = 0
+    >>> strike = 100
+    >>> m = pf.HestonMcAndersen2008(sigma, vov=vov, mr=mr, rho=rho, theta=theta, intr=intr)
+    >>> m.set_num_params(n_path=n_path, dt=dt, rn_seed=123456)
+
+    >>> cp = 1  # cp 1/-1 for call/put option
+    >>> condmc = 0  # condmc 0/1 for Simple MC/Conditional MC
+    >>> timer_price = pf.timer_mc.timeroption(vol_budget, model=m).price(spot=spot, strike=strike, texp=texp, cp=cp, condmc=condmc)
+    timer_price = 8.679760100472588
+
     """
 
-    def __init__(self, vol_budget, model, n_path=200000, dt=1 / 250):
+    def __init__(self, vol_budget, model):
         self.vol_budget = vol_budget
         self.model = model
-        self.n_path = n_path
-        self.dt = dt
+        self.n_path = self.model.n_path
+        self.dt = self.model.dt
 
     def price(self, spot, strike, texp, cp=1, condmc=0):
         """
@@ -67,7 +89,7 @@ class timeroption:
 
         else:
             """
-            Conditional MC (St follows BSM)
+            Conditional MC
             """
             # hit_record keeps a record of history hittings.
             # hit_at_dt records a new hit over budget level.
